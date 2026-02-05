@@ -1,7 +1,7 @@
 using Dapper;
 using Microsoft.Data.SqlClient;
 
-public class LicenseCategoryRepository : IRepository<LicenseCategory, int>
+public sealed class LicenseCategoryRepository : IRepository<LicenseCategory, int>
 {
     private readonly DatabaseConnection _db;
 
@@ -120,18 +120,22 @@ public class LicenseCategoryRepository : IRepository<LicenseCategory, int>
         return categoriesDict.Values;
     }
     
-    public async Task<bool> AddEntity(LicenseCategory entity)
+    public async Task<LicenseCategory?> AddEntity(LicenseCategory entity)
     {
         using var connection = _db.GetConnection();
         
         var sql = """
             INSERT INTO LicenseCategory (Name, Description)
-            VALUES (@Name, @Description)
+            VALUES (@Name, @Description);
+            SELECT CAST(SCOPE_IDENTITY() AS INT);
         """;
         
-        var rowsAffected = await connection.ExecuteAsync(sql, new { entity.Name, entity.Description });
+        var newId = await connection.QuerySingleOrDefaultAsync<int?>(sql, new { entity.Name, entity.Description });
+    
+        if (newId == null) return null;
         
-        return rowsAffected > 0;
+        entity.Id = newId.Value;
+        return entity;
     }
 
     public async Task<bool> UpdateEntity(LicenseCategory entity)

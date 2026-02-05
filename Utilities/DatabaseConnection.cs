@@ -2,7 +2,7 @@ using System;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
-public class DatabaseConnection
+public sealed class DatabaseConnection
 {
     private readonly string _connectionString;
 

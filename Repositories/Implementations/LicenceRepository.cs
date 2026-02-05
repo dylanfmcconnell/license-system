@@ -1,6 +1,6 @@
 using Dapper;
 
-public class LicenseRepository : IRepository<License, string>
+public sealed class LicenseRepository : IRepository<License, string>
 {
     private readonly DatabaseConnection _db;
 
@@ -54,7 +54,7 @@ public class LicenseRepository : IRepository<License, string>
         return licenses;
     }
 
-    public async Task<bool> AddEntity(License entity)
+    public async Task<License?> AddEntity(License entity)
     {
         using var connection = _db.GetConnection();
         
@@ -77,7 +77,7 @@ public class LicenseRepository : IRepository<License, string>
             Status = entity.Status.ToString()
         });
         
-        return rowsAffected > 0;
+        return rowsAffected > 0 ? entity : null;
     }
 
     public async Task<bool> UpdateEntity(License entity)

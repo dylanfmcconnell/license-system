@@ -1,6 +1,6 @@
 using Dapper;
 
-public class ApplicationRepository : IRepository<Application, int>
+public sealed class ApplicationRepository : IRepository<Application, int>
 {
     private readonly DatabaseConnection _db;
 
@@ -71,17 +71,18 @@ public class ApplicationRepository : IRepository<Application, int>
         return applications;
     }
 
-    public async Task<bool> AddEntity(Application entity)
+    public async Task<Application?> AddEntity(Application entity)
     {
         using var connection = _db.GetConnection();
         
         var sql = """
             INSERT INTO Application (ApplicantId, LicenseTypeId, SubmissionDate, ApprovedStatus, ApprovedDate, LicenseId, Fee, DeliveryAddress)
-            VALUES (@ApplicantId, @LicenseTypeId, @SubmissionDate, @ApprovedStatus, @ApprovedDate, @LicenseId, @Fee, @DeliveryAddress)
+            VALUES (@ApplicantId, @LicenseTypeId, @SubmissionDate, @ApprovedStatus, @ApprovedDate, @LicenseId, @Fee, @DeliveryAddress);
+            SELECT CAST(SCOPE_IDENTITY() AS INT);
         """;
         
-        var rowsAffected = await connection.ExecuteAsync(sql, new 
-        { 
+        var newId = await connection.QuerySingleOrDefaultAsync<int?>(sql, new
+        {
             entity.ApplicantId,
             entity.LicenseTypeId,
             entity.SubmissionDate,
@@ -91,8 +92,11 @@ public class ApplicationRepository : IRepository<Application, int>
             entity.Fee,
             entity.DeliveryAddress
         });
+    
+        if (newId == null) return null;
         
-        return rowsAffected > 0;
+        entity.Id = newId.Value;
+        return entity;
     }
 
     public async Task<bool> UpdateEntity(Application entity)

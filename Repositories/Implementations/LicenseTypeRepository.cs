@@ -1,6 +1,6 @@
 using Dapper;
 
-public class LicenseTypeRepository : IRepository<LicenseType, int>
+public sealed class LicenseTypeRepository : IRepository<LicenseType, int>
 {
     private readonly DatabaseConnection _db;
 
@@ -50,16 +50,17 @@ public class LicenseTypeRepository : IRepository<LicenseType, int>
         return licenseTypes;
     }
 
-    public async Task<bool> AddEntity(LicenseType entity)
+    public async Task<LicenseType?> AddEntity(LicenseType entity)
     {
         using var connection = _db.GetConnection();
         
         var sql = """
             INSERT INTO LicenseType (Name, CategoryId, LicenseClassName, ExpirationTime, Fee, Description)
-            VALUES (@Name, @CategoryId, @LicenseClassName, @ExpirationTime, @Fee, @Description)
+            VALUES (@Name, @CategoryId, @LicenseClassName, @ExpirationTime, @Fee, @Description);
+            SELECT CAST(SCOPE_IDENTITY() AS INT);
         """;
         
-        var rowsAffected = await connection.ExecuteAsync(sql, new 
+        var newId = await connection.QuerySingleOrDefaultAsync<int?>(sql, new 
         { 
             entity.Name, 
             entity.CategoryId, 
@@ -68,8 +69,11 @@ public class LicenseTypeRepository : IRepository<LicenseType, int>
             entity.Fee, 
             entity.Description 
         });
+    
+        if (newId == null) return null;
         
-        return rowsAffected > 0;
+        entity.Id = newId.Value;
+        return entity;
     }
 
     public async Task<bool> UpdateEntity(LicenseType entity)

@@ -1,5 +1,4 @@
-﻿// AI generated TESTS
-using Dapper;
+﻿using Dapper;
 
 SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
 
@@ -29,16 +28,17 @@ static async Task RunTests(
 
     // Add
     var newCategory = new LicenseCategory { Name = $"Test Category {Guid.NewGuid()}", Description = "Test description" };
-    var categoryAdded = await categoryRepo.AddEntity(newCategory);
-    TestRunner.Expect(categoryAdded, "AddEntity returns true");
+    var addedCategory = await categoryRepo.AddEntity(newCategory);
+    TestRunner.ExpectNotNull(addedCategory, "AddEntity returns entity");
+    TestRunner.ExpectGreaterThan(addedCategory?.Id ?? 0, 0, "AddEntity sets Id");
 
     // GetAll
     var allCategories = (await categoryRepo.GetAllEntities()).ToList();
     TestRunner.ExpectGreaterThan(allCategories.Count, 0, "GetAllEntities returns results");
 
     // Find the one we just added
-    var addedCategory = allCategories.FirstOrDefault(c => c.Name == newCategory.Name);
-    TestRunner.ExpectNotNull(addedCategory, "Added category exists in GetAll");
+    var foundCategory = allCategories.FirstOrDefault(c => c.Name == newCategory.Name);
+    TestRunner.ExpectNotNull(foundCategory, "Added category exists in GetAll");
 
     // GetById
     if (addedCategory != null)
@@ -76,14 +76,15 @@ static async Task RunTests(
         Email = $"test{Guid.NewGuid()}@example.com",
         PhoneNumber = "555-1234"
     };
-    var applicantAdded = await applicantRepo.AddEntity(newApplicant);
-    TestRunner.Expect(applicantAdded, "AddEntity returns true");
+    var addedApplicant = await applicantRepo.AddEntity(newApplicant);
+    TestRunner.ExpectNotNull(addedApplicant, "AddEntity returns entity");
+    TestRunner.ExpectGreaterThan(addedApplicant?.Id ?? 0, 0, "AddEntity sets Id");
 
     var allApplicants = (await applicantRepo.GetAllEntities()).ToList();
     TestRunner.ExpectGreaterThan(allApplicants.Count, 0, "GetAllEntities returns results");
 
-    var addedApplicant = allApplicants.FirstOrDefault(a => a.Email == newApplicant.Email);
-    TestRunner.ExpectNotNull(addedApplicant, "Added applicant exists in GetAll");
+    var foundApplicant = allApplicants.FirstOrDefault(a => a.Email == newApplicant.Email);
+    TestRunner.ExpectNotNull(foundApplicant, "Added applicant exists in GetAll");
 
     if (addedApplicant != null)
     {
@@ -112,205 +113,218 @@ static async Task RunTests(
 
     // First we need a category for the LicenseType
     var typeCategory = new LicenseCategory { Name = $"Type Test Category {Guid.NewGuid()}" };
-    await categoryRepo.AddEntity(typeCategory);
-    var savedCategory = (await categoryRepo.GetAllEntities()).First(c => c.Name == typeCategory.Name);
+    var savedCategory = await categoryRepo.AddEntity(typeCategory);
 
-    var newLicenseType = new LicenseType
+    if (savedCategory != null)
     {
-        Name = $"Test License Type {Guid.NewGuid()}",
-        CategoryId = savedCategory.Id,
-        Category = savedCategory,
-        LicenseClass = typeof(License),
-        ExpirationTime = 24,
-        Fee = 50.00m,
-        Description = "Test license type"
-    };
-    var licenseTypeAdded = await licenseTypeRepo.AddEntity(newLicenseType);
-    TestRunner.Expect(licenseTypeAdded, "AddEntity returns true");
+        var newLicenseType = new LicenseType
+        {
+            Name = $"Test License Type {Guid.NewGuid()}",
+            CategoryId = savedCategory.Id,
+            Category = savedCategory,
+            LicenseClass = typeof(License),
+            ExpirationTime = 24,
+            Fee = 50.00m,
+            Description = "Test license type"
+        };
+        var addedLicenseType = await licenseTypeRepo.AddEntity(newLicenseType);
+        TestRunner.ExpectNotNull(addedLicenseType, "AddEntity returns entity");
+        TestRunner.ExpectGreaterThan(addedLicenseType?.Id ?? 0, 0, "AddEntity sets Id");
 
-    var allLicenseTypes = (await licenseTypeRepo.GetAllEntities()).ToList();
-    TestRunner.ExpectGreaterThan(allLicenseTypes.Count, 0, "GetAllEntities returns results");
+        var allLicenseTypes = (await licenseTypeRepo.GetAllEntities()).ToList();
+        TestRunner.ExpectGreaterThan(allLicenseTypes.Count, 0, "GetAllEntities returns results");
 
-    var addedLicenseType = allLicenseTypes.FirstOrDefault(lt => lt.Name == newLicenseType.Name);
-    TestRunner.ExpectNotNull(addedLicenseType, "Added license type exists in GetAll");
+        var foundLicenseType = allLicenseTypes.FirstOrDefault(lt => lt.Name == newLicenseType.Name);
+        TestRunner.ExpectNotNull(foundLicenseType, "Added license type exists in GetAll");
 
-    if (addedLicenseType != null)
-    {
-        var fetchedLicenseType = await licenseTypeRepo.GetEntityById(addedLicenseType.Id);
-        TestRunner.ExpectNotNull(fetchedLicenseType, "GetEntityById returns result");
-        TestRunner.ExpectNotNull(fetchedLicenseType?.Category, "GetEntityById loads Category relationship");
-        TestRunner.ExpectEqual(24, fetchedLicenseType?.ExpirationTime, "GetEntityById returns correct ExpirationTime");
+        if (addedLicenseType != null)
+        {
+            var fetchedLicenseType = await licenseTypeRepo.GetEntityById(addedLicenseType.Id);
+            TestRunner.ExpectNotNull(fetchedLicenseType, "GetEntityById returns result");
+            TestRunner.ExpectNotNull(fetchedLicenseType?.Category, "GetEntityById loads Category relationship");
+            TestRunner.ExpectEqual(24, fetchedLicenseType?.ExpirationTime, "GetEntityById returns correct ExpirationTime");
 
-        // Update
-        fetchedLicenseType!.Fee = 75.00m;
-        var licenseTypeUpdated = await licenseTypeRepo.UpdateEntity(fetchedLicenseType);
-        TestRunner.Expect(licenseTypeUpdated, "UpdateEntity returns true");
+            // Update
+            fetchedLicenseType!.Fee = 75.00m;
+            var licenseTypeUpdated = await licenseTypeRepo.UpdateEntity(fetchedLicenseType);
+            TestRunner.Expect(licenseTypeUpdated, "UpdateEntity returns true");
 
-        var updatedLicenseType = await licenseTypeRepo.GetEntityById(fetchedLicenseType.Id);
-        TestRunner.ExpectEqual(75.00m, updatedLicenseType?.Fee, "UpdateEntity persists changes");
+            var updatedLicenseType = await licenseTypeRepo.GetEntityById(fetchedLicenseType.Id);
+            TestRunner.ExpectEqual(75.00m, updatedLicenseType?.Fee, "UpdateEntity persists changes");
 
-        // Delete
-        var licenseTypeDeleted = await licenseTypeRepo.DeleteEntity(fetchedLicenseType.Id);
-        TestRunner.Expect(licenseTypeDeleted, "DeleteEntity returns true");
+            // Delete
+            var licenseTypeDeleted = await licenseTypeRepo.DeleteEntity(fetchedLicenseType.Id);
+            TestRunner.Expect(licenseTypeDeleted, "DeleteEntity returns true");
+        }
+
+        // Cleanup category
+        await categoryRepo.DeleteEntity(savedCategory.Id);
     }
-
-    // Cleanup category
-    await categoryRepo.DeleteEntity(savedCategory.Id);
 
     // ========== License Tests ==========
     TestRunner.Describe("License Repository");
 
     // Setup: need category, license type, and applicant
     var licenseCategory = new LicenseCategory { Name = $"License Test Category {Guid.NewGuid()}" };
-    await categoryRepo.AddEntity(licenseCategory);
-    licenseCategory = (await categoryRepo.GetAllEntities()).First(c => c.Name == licenseCategory.Name);
+    var savedLicenseCategory = await categoryRepo.AddEntity(licenseCategory);
 
-    var licenseType = new LicenseType
+    if (savedLicenseCategory != null)
     {
-        Name = $"License Test Type {Guid.NewGuid()}",
-        CategoryId = licenseCategory.Id,
-        Category = licenseCategory,
-        LicenseClass = typeof(License),
-        ExpirationTime = 12,
-        Fee = 25.00m
-    };
-    await licenseTypeRepo.AddEntity(licenseType);
-    licenseType = (await licenseTypeRepo.GetAllEntities()).First(lt => lt.Name == licenseType.Name);
+        var licenseType = new LicenseType
+        {
+            Name = $"License Test Type {Guid.NewGuid()}",
+            CategoryId = savedLicenseCategory.Id,
+            Category = savedLicenseCategory,
+            LicenseClass = typeof(License),
+            ExpirationTime = 12,
+            Fee = 25.00m
+        };
+        var savedLicenseType = await licenseTypeRepo.AddEntity(licenseType);
 
-    var licenseApplicant = new Applicant
-    {
-        FirstName = "License",
-        LastName = "Tester",
-        DateJoined = DateOnly.FromDateTime(DateTime.Now),
-        DateOfBirth = new DateOnly(1985, 3, 20),
-        Address = "456 License Ave",
-        Email = $"license{Guid.NewGuid()}@test.com"
-    };
-    await applicantRepo.AddEntity(licenseApplicant);
-    licenseApplicant = (await applicantRepo.GetAllEntities()).First(a => a.Email == licenseApplicant.Email);
+        var licenseApplicant = new Applicant
+        {
+            FirstName = "License",
+            LastName = "Tester",
+            DateJoined = DateOnly.FromDateTime(DateTime.Now),
+            DateOfBirth = new DateOnly(1985, 3, 20),
+            Address = "456 License Ave",
+            Email = $"license{Guid.NewGuid()}@test.com"
+        };
+        var savedLicenseApplicant = await applicantRepo.AddEntity(licenseApplicant);
 
-    var newLicense = new License
-    {
-        Id = $"LIC-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
-        LicenseTypeId = licenseType.Id,
-        LicenseType = licenseType,
-        ApplicantId = licenseApplicant.Id,
-        Applicant = licenseApplicant,
-        FirstName = licenseApplicant.FirstName,
-        LastName = licenseApplicant.LastName,
-        Address = licenseApplicant.Address!,
-        DateOfBirth = licenseApplicant.DateOfBirth,
-        IssueDate = DateOnly.FromDateTime(DateTime.Now),
-        ExpirationDate = DateOnly.FromDateTime(DateTime.Now.AddMonths(12)),
-        Status = LicenseStatus.Valid
-    };
-    var licenseAdded = await licenseRepo.AddEntity(newLicense);
-    TestRunner.Expect(licenseAdded, "AddEntity returns true");
+        if (savedLicenseType != null && savedLicenseApplicant != null)
+        {
+            var newLicense = new License
+            {
+                Id = $"LIC-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+                LicenseTypeId = savedLicenseType.Id,
+                LicenseType = savedLicenseType,
+                ApplicantId = savedLicenseApplicant.Id,
+                Applicant = savedLicenseApplicant,
+                FirstName = savedLicenseApplicant.FirstName,
+                LastName = savedLicenseApplicant.LastName,
+                Address = savedLicenseApplicant.Address!,
+                DateOfBirth = savedLicenseApplicant.DateOfBirth,
+                IssueDate = DateOnly.FromDateTime(DateTime.Now),
+                ExpirationDate = DateOnly.FromDateTime(DateTime.Now.AddMonths(12)),
+                Status = LicenseStatus.Valid
+            };
+            var addedLicense = await licenseRepo.AddEntity(newLicense);
+            TestRunner.ExpectNotNull(addedLicense, "AddEntity returns entity");
+            TestRunner.ExpectEqual(newLicense.Id, addedLicense?.Id, "AddEntity preserves provided Id");
 
-    var fetchedLicense = await licenseRepo.GetEntityById(newLicense.Id);
-    TestRunner.ExpectNotNull(fetchedLicense, "GetEntityById returns result");
-    TestRunner.ExpectNotNull(fetchedLicense?.Applicant, "GetEntityById loads Applicant relationship");
-    TestRunner.ExpectNotNull(fetchedLicense?.LicenseType, "GetEntityById loads LicenseType relationship");
-    TestRunner.ExpectEqual(LicenseStatus.Valid, fetchedLicense?.Status, "GetEntityById returns correct Status");
+            var fetchedLicense = await licenseRepo.GetEntityById(newLicense.Id);
+            TestRunner.ExpectNotNull(fetchedLicense, "GetEntityById returns result");
+            TestRunner.ExpectNotNull(fetchedLicense?.Applicant, "GetEntityById loads Applicant relationship");
+            TestRunner.ExpectNotNull(fetchedLicense?.LicenseType, "GetEntityById loads LicenseType relationship");
+            TestRunner.ExpectEqual(LicenseStatus.Valid, fetchedLicense?.Status, "GetEntityById returns correct Status");
 
-    // Update
-    fetchedLicense!.Status = LicenseStatus.Suspended;
-    var licenseUpdated = await licenseRepo.UpdateEntity(fetchedLicense);
-    TestRunner.Expect(licenseUpdated, "UpdateEntity returns true");
+            // Update
+            fetchedLicense!.Status = LicenseStatus.Suspended;
+            var licenseUpdated = await licenseRepo.UpdateEntity(fetchedLicense);
+            TestRunner.Expect(licenseUpdated, "UpdateEntity returns true");
 
-    var updatedLicense = await licenseRepo.GetEntityById(fetchedLicense.Id);
-    TestRunner.ExpectEqual(LicenseStatus.Suspended, updatedLicense?.Status, "UpdateEntity persists changes");
+            var updatedLicense = await licenseRepo.GetEntityById(fetchedLicense.Id);
+            TestRunner.ExpectEqual(LicenseStatus.Suspended, updatedLicense?.Status, "UpdateEntity persists changes");
 
-    // GetAll
-    var allLicenses = (await licenseRepo.GetAllEntities()).ToList();
-    TestRunner.ExpectGreaterThan(allLicenses.Count, 0, "GetAllEntities returns results");
+            // GetAll
+            var allLicenses = (await licenseRepo.GetAllEntities()).ToList();
+            TestRunner.ExpectGreaterThan(allLicenses.Count, 0, "GetAllEntities returns results");
 
-    // Delete
-    var licenseDeleted = await licenseRepo.DeleteEntity(fetchedLicense.Id);
-    TestRunner.Expect(licenseDeleted, "DeleteEntity returns true");
+            // Delete
+            var licenseDeleted = await licenseRepo.DeleteEntity(fetchedLicense.Id);
+            TestRunner.Expect(licenseDeleted, "DeleteEntity returns true");
 
-    // Cleanup
-    await applicantRepo.DeleteEntity(licenseApplicant.Id);
-    await licenseTypeRepo.DeleteEntity(licenseType.Id);
-    await categoryRepo.DeleteEntity(licenseCategory.Id);
+            // Cleanup
+            await applicantRepo.DeleteEntity(savedLicenseApplicant.Id);
+            await licenseTypeRepo.DeleteEntity(savedLicenseType.Id);
+        }
+
+        await categoryRepo.DeleteEntity(savedLicenseCategory.Id);
+    }
 
     // ========== Application Tests ==========
     TestRunner.Describe("Application Repository");
 
     // Setup
     var appCategory = new LicenseCategory { Name = $"App Test Category {Guid.NewGuid()}" };
-    await categoryRepo.AddEntity(appCategory);
-    appCategory = (await categoryRepo.GetAllEntities()).First(c => c.Name == appCategory.Name);
+    var savedAppCategory = await categoryRepo.AddEntity(appCategory);
 
-    var appLicenseType = new LicenseType
+    if (savedAppCategory != null)
     {
-        Name = $"App Test Type {Guid.NewGuid()}",
-        CategoryId = appCategory.Id,
-        Category = appCategory,
-        LicenseClass = typeof(License),
-        Fee = 30.00m
-    };
-    await licenseTypeRepo.AddEntity(appLicenseType);
-    appLicenseType = (await licenseTypeRepo.GetAllEntities()).First(lt => lt.Name == appLicenseType.Name);
+        var appLicenseType = new LicenseType
+        {
+            Name = $"App Test Type {Guid.NewGuid()}",
+            CategoryId = savedAppCategory.Id,
+            Category = savedAppCategory,
+            LicenseClass = typeof(License),
+            Fee = 30.00m
+        };
+        var savedAppLicenseType = await licenseTypeRepo.AddEntity(appLicenseType);
 
-    var appApplicant = new Applicant
-    {
-        FirstName = "App",
-        LastName = "Tester",
-        DateJoined = DateOnly.FromDateTime(DateTime.Now),
-        DateOfBirth = new DateOnly(1992, 7, 10),
-        Address = "789 App Blvd",
-        Email = $"app{Guid.NewGuid()}@test.com"
-    };
-    await applicantRepo.AddEntity(appApplicant);
-    appApplicant = (await applicantRepo.GetAllEntities()).First(a => a.Email == appApplicant.Email);
+        var appApplicant = new Applicant
+        {
+            FirstName = "App",
+            LastName = "Tester",
+            DateJoined = DateOnly.FromDateTime(DateTime.Now),
+            DateOfBirth = new DateOnly(1992, 7, 10),
+            Address = "789 App Blvd",
+            Email = $"app{Guid.NewGuid()}@test.com"
+        };
+        var savedAppApplicant = await applicantRepo.AddEntity(appApplicant);
 
-    var newApplication = new Application
-    {
-        ApplicantId = appApplicant.Id,
-        Applicant = appApplicant,
-        LicenseTypeId = appLicenseType.Id,
-        LicenseType = appLicenseType,
-        SubmissionDate = DateOnly.FromDateTime(DateTime.Now),
-        DeliveryAddress = "789 App Blvd",
-        ApprovedStatus = ApplicationStatus.UnderReview,
-        Fee = 30.00m
-    };
-    var applicationAdded = await applicationRepo.AddEntity(newApplication);
-    TestRunner.Expect(applicationAdded, "AddEntity returns true");
+        if (savedAppLicenseType != null && savedAppApplicant != null)
+        {
+            var newApplication = new Application
+            {
+                ApplicantId = savedAppApplicant.Id,
+                Applicant = savedAppApplicant,
+                LicenseTypeId = savedAppLicenseType.Id,
+                LicenseType = savedAppLicenseType,
+                SubmissionDate = DateOnly.FromDateTime(DateTime.Now),
+                DeliveryAddress = "789 App Blvd",
+                ApprovedStatus = ApplicationStatus.UnderReview,
+                Fee = 30.00m
+            };
+            var addedApplication = await applicationRepo.AddEntity(newApplication);
+            TestRunner.ExpectNotNull(addedApplication, "AddEntity returns entity");
+            TestRunner.ExpectGreaterThan(addedApplication?.Id ?? 0, 0, "AddEntity sets Id");
 
-    var allApplications = (await applicationRepo.GetAllEntities()).ToList();
-    TestRunner.ExpectGreaterThan(allApplications.Count, 0, "GetAllEntities returns results");
+            var allApplications = (await applicationRepo.GetAllEntities()).ToList();
+            TestRunner.ExpectGreaterThan(allApplications.Count, 0, "GetAllEntities returns results");
 
-    var addedApplication = allApplications.FirstOrDefault(a => a.ApplicantId == appApplicant.Id);
-    TestRunner.ExpectNotNull(addedApplication, "Added application exists in GetAll");
+            var foundApplication = allApplications.FirstOrDefault(a => a.ApplicantId == savedAppApplicant.Id);
+            TestRunner.ExpectNotNull(foundApplication, "Added application exists in GetAll");
 
-    if (addedApplication != null)
-    {
-        var fetchedApplication = await applicationRepo.GetEntityById(addedApplication.Id);
-        TestRunner.ExpectNotNull(fetchedApplication, "GetEntityById returns result");
-        TestRunner.ExpectNotNull(fetchedApplication?.Applicant, "GetEntityById loads Applicant relationship");
-        TestRunner.ExpectNotNull(fetchedApplication?.LicenseType, "GetEntityById loads LicenseType relationship");
-        TestRunner.ExpectEqual(ApplicationStatus.UnderReview, fetchedApplication?.ApprovedStatus, "GetEntityById returns correct status");
+            if (addedApplication != null)
+            {
+                var fetchedApplication = await applicationRepo.GetEntityById(addedApplication.Id);
+                TestRunner.ExpectNotNull(fetchedApplication, "GetEntityById returns result");
+                TestRunner.ExpectNotNull(fetchedApplication?.Applicant, "GetEntityById loads Applicant relationship");
+                TestRunner.ExpectNotNull(fetchedApplication?.LicenseType, "GetEntityById loads LicenseType relationship");
+                TestRunner.ExpectEqual(ApplicationStatus.UnderReview, fetchedApplication?.ApprovedStatus, "GetEntityById returns correct status");
 
-        // Update
-        fetchedApplication!.ApprovedStatus = ApplicationStatus.Approved;
-        fetchedApplication.ApprovedDate = DateOnly.FromDateTime(DateTime.Now);
-        var applicationUpdated = await applicationRepo.UpdateEntity(fetchedApplication);
-        TestRunner.Expect(applicationUpdated, "UpdateEntity returns true");
+                // Update
+                fetchedApplication!.ApprovedStatus = ApplicationStatus.Approved;
+                fetchedApplication.ApprovedDate = DateOnly.FromDateTime(DateTime.Now);
+                var applicationUpdated = await applicationRepo.UpdateEntity(fetchedApplication);
+                TestRunner.Expect(applicationUpdated, "UpdateEntity returns true");
 
-        var updatedApplication = await applicationRepo.GetEntityById(fetchedApplication.Id);
-        TestRunner.ExpectEqual(ApplicationStatus.Approved, updatedApplication?.ApprovedStatus, "UpdateEntity persists status change");
+                var updatedApplication = await applicationRepo.GetEntityById(fetchedApplication.Id);
+                TestRunner.ExpectEqual(ApplicationStatus.Approved, updatedApplication?.ApprovedStatus, "UpdateEntity persists status change");
 
-        // Delete
-        var applicationDeleted = await applicationRepo.DeleteEntity(fetchedApplication.Id);
-        TestRunner.Expect(applicationDeleted, "DeleteEntity returns true");
+                // Delete
+                var applicationDeleted = await applicationRepo.DeleteEntity(fetchedApplication.Id);
+                TestRunner.Expect(applicationDeleted, "DeleteEntity returns true");
+            }
+
+            // Cleanup
+            await applicantRepo.DeleteEntity(savedAppApplicant.Id);
+            await licenseTypeRepo.DeleteEntity(savedAppLicenseType.Id);
+        }
+
+        await categoryRepo.DeleteEntity(savedAppCategory.Id);
     }
-
-    // Cleanup
-    await applicantRepo.DeleteEntity(appApplicant.Id);
-    await licenseTypeRepo.DeleteEntity(appLicenseType.Id);
-    await categoryRepo.DeleteEntity(appCategory.Id);
 
     // ========== Summary ==========
     TestRunner.Summary();
