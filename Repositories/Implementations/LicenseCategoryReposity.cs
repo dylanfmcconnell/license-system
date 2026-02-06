@@ -17,13 +17,13 @@ public sealed class LicenseCategoryRepository : IRepository<LicenseCategory, int
         using var connection = _db.GetConnection();
 
         var sql = """
-        SELECT 
-            c.Id, c.Name, c.Description,
-            t.Id, t.Name, t.CategoryId, t.LicenseClassName, t.ExpirationTime, t.Fee, t.Description
-        FROM LicenseCategory c
-        LEFT JOIN LicenseType t ON c.Id = t.CategoryId
-        WHERE c.Id = @Id
-        """;
+            SELECT 
+                c.Id, c.Name, c.Description,
+                t.Id, t.Name, t.CategoryId, t.LicenseClassName, t.ExpirationTime, t.Fee, t.Description
+            FROM LicenseCategory c
+            LEFT JOIN LicenseType t ON c.Id = t.CategoryId
+            WHERE c.Id = @Id
+            """;
 
         using var command = new SqlCommand(sql, (SqlConnection)connection);
         command.Parameters.AddWithValue("@Id", id);
@@ -43,22 +43,25 @@ public sealed class LicenseCategoryRepository : IRepository<LicenseCategory, int
                     Description = reader.IsDBNull(2) ? null : reader.GetString(2),
                 };
             }
-            
-            if (!reader.IsDBNull(3))
-            {   
-                var className = reader.GetString(6);
-                var licenseClass = Type.GetType($"LicenseSystem.Models.{className}") ?? typeof(License);
 
-                category.LicenseTypes.Add(new LicenseType
-                {
-                    Id = reader.GetInt32(3),
-                    Name = reader.GetString(4),
-                    Category = category,
-                    LicenseClass = licenseClass,
-                    ExpirationTime = reader.IsDBNull(7) ? null : reader.GetInt32(7),
-                    Fee = reader.IsDBNull(8) ? null : reader.GetDecimal(8),
-                    Description = reader.IsDBNull(9) ? null : reader.GetString(9),
-                });
+            if (!reader.IsDBNull(3))
+            {
+                var className = reader.GetString(6);
+                var licenseClass =
+                    Type.GetType($"LicenseSystem.Models.{className}") ?? typeof(License);
+
+                category.LicenseTypes.Add(
+                    new LicenseType
+                    {
+                        Id = reader.GetInt32(3),
+                        Name = reader.GetString(4),
+                        Category = category,
+                        LicenseClass = licenseClass,
+                        ExpirationTime = reader.IsDBNull(7) ? null : reader.GetInt32(7),
+                        Fee = reader.IsDBNull(8) ? null : reader.GetDecimal(8),
+                        Description = reader.IsDBNull(9) ? null : reader.GetString(9),
+                    }
+                );
             }
         }
 
@@ -72,12 +75,12 @@ public sealed class LicenseCategoryRepository : IRepository<LicenseCategory, int
         using var connection = _db.GetConnection();
 
         var sql = """
-        SELECT 
-            c.Id, c.Name, c.Description,
-            t.Id, t.Name, t.CategoryId, t.LicenseClassName, t.ExpirationTime, t.Fee, t.Description
-        FROM LicenseCategory c
-        LEFT JOIN LicenseType t ON c.Id = t.CategoryId
-        """;
+            SELECT 
+                c.Id, c.Name, c.Description,
+                t.Id, t.Name, t.CategoryId, t.LicenseClassName, t.ExpirationTime, t.Fee, t.Description
+            FROM LicenseCategory c
+            LEFT JOIN LicenseType t ON c.Id = t.CategoryId
+            """;
 
         using var command = new SqlCommand(sql, (SqlConnection)connection);
         using var reader = await command.ExecuteReaderAsync();
@@ -87,7 +90,7 @@ public sealed class LicenseCategoryRepository : IRepository<LicenseCategory, int
         while (await reader.ReadAsync())
         {
             var categoryId = reader.GetInt32(0);
-            
+
             if (!categoriesDict.TryGetValue(categoryId, out var category))
             {
                 category = new LicenseCategory
@@ -98,42 +101,49 @@ public sealed class LicenseCategoryRepository : IRepository<LicenseCategory, int
                 };
                 categoriesDict[categoryId] = category;
             }
-            
+
             if (!reader.IsDBNull(3))
             {
                 var className = reader.GetString(6);
-                var licenseClass = Type.GetType($"LicenseSystem.Models.{className}") ?? typeof(License);
+                var licenseClass =
+                    Type.GetType($"LicenseSystem.Models.{className}") ?? typeof(License);
 
-                category.LicenseTypes.Add(new LicenseType
-                {
-                    Id = reader.GetInt32(3),
-                    Name = reader.GetString(4),
-                    Category = categoriesDict[categoryId],
-                    LicenseClass = licenseClass,
-                    ExpirationTime = reader.IsDBNull(7) ? null : reader.GetInt32(7),
-                    Fee = reader.IsDBNull(8) ? null : reader.GetDecimal(8),
-                    Description = reader.IsDBNull(9) ? null : reader.GetString(9),
-                });
+                category.LicenseTypes.Add(
+                    new LicenseType
+                    {
+                        Id = reader.GetInt32(3),
+                        Name = reader.GetString(4),
+                        Category = categoriesDict[categoryId],
+                        LicenseClass = licenseClass,
+                        ExpirationTime = reader.IsDBNull(7) ? null : reader.GetInt32(7),
+                        Fee = reader.IsDBNull(8) ? null : reader.GetDecimal(8),
+                        Description = reader.IsDBNull(9) ? null : reader.GetString(9),
+                    }
+                );
             }
         }
 
         return categoriesDict.Values;
     }
-    
+
     public async Task<LicenseCategory?> AddEntity(LicenseCategory entity)
     {
         using var connection = _db.GetConnection();
-        
+
         var sql = """
-            INSERT INTO LicenseCategory (Name, Description)
-            VALUES (@Name, @Description);
-            SELECT CAST(SCOPE_IDENTITY() AS INT);
-        """;
-        
-        var newId = await connection.QuerySingleOrDefaultAsync<int?>(sql, new { entity.Name, entity.Description });
-    
-        if (newId == null) return null;
-        
+                INSERT INTO LicenseCategory (Name, Description)
+                VALUES (@Name, @Description);
+                SELECT CAST(SCOPE_IDENTITY() AS INT);
+            """;
+
+        var newId = await connection.QuerySingleOrDefaultAsync<int?>(
+            sql,
+            new { entity.Name, entity.Description }
+        );
+
+        if (newId == null)
+            return null;
+
         entity.Id = newId.Value;
         return entity;
     }
@@ -141,29 +151,37 @@ public sealed class LicenseCategoryRepository : IRepository<LicenseCategory, int
     public async Task<bool> UpdateEntity(LicenseCategory entity)
     {
         using var connection = _db.GetConnection();
-        
+
         var sql = """
-            UPDATE LicenseCategory
-            SET Name = @Name, Description = @Description
-            WHERE Id = @Id
-        """;
-        
-        var rowsAffected = await connection.ExecuteAsync(sql, new { entity.Name, entity.Description, entity.Id });
-        
+                UPDATE LicenseCategory
+                SET Name = @Name, Description = @Description
+                WHERE Id = @Id
+            """;
+
+        var rowsAffected = await connection.ExecuteAsync(
+            sql,
+            new
+            {
+                entity.Name,
+                entity.Description,
+                entity.Id,
+            }
+        );
+
         return rowsAffected == 1;
-    }  
+    }
 
     public async Task<bool> DeleteEntity(int id)
     {
         using var connection = _db.GetConnection();
-        
+
         var sql = """
-            DELETE FROM LicenseCategory
-            WHERE Id = @Id
-        """;
-        
+                DELETE FROM LicenseCategory
+                WHERE Id = @Id
+            """;
+
         var rowsAffected = await connection.ExecuteAsync(sql, new { id });
-        
+
         return rowsAffected == 1;
     }
 }

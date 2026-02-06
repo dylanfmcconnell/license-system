@@ -1,6 +1,5 @@
-using System;
-using Microsoft.Data.SqlClient;
 using System.Data;
+using Microsoft.Data.SqlClient;
 
 public sealed class DatabaseConnection
 {

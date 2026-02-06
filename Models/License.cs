@@ -2,7 +2,7 @@ public class License
 {
     public required string Id { get; init; }
     public int LicenseTypeId { get; set; } // Dapper needs this
-    public LicenseType? LicenseType { get; set;}
+    public LicenseType? LicenseType { get; set; }
     public int ApplicantId { get; set; } // Dapper needs this
     public Applicant? Applicant { get; set; }
     public required string FirstName { get; set; }

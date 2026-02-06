@@ -12,15 +12,19 @@ public sealed class ApplicantRepository : IRepository<Applicant, int>
     public async Task<Applicant?> GetEntityById(int id)
     {
         using var connection = _db.GetConnection();
-        
+
         var applicantSql = "SELECT * FROM Applicant WHERE Id = @id";
-        var applicant = await connection.QueryFirstOrDefaultAsync<Applicant>(applicantSql, new { id });
-        
-        if (applicant == null) return null;
-        
+        var applicant = await connection.QueryFirstOrDefaultAsync<Applicant>(
+            applicantSql,
+            new { id }
+        );
+
+        if (applicant == null)
+            return null;
+
         var applicationsSql = "SELECT * FROM Application WHERE ApplicantId = @Id";
         var applications = await connection.QueryAsync<Application>(applicationsSql, new { id });
-        
+
         var licensesSql = "SELECT * FROM License WHERE ApplicantId = @Id";
         var licenses = await connection.QueryAsync<License>(licensesSql, new { id });
 
@@ -33,21 +37,29 @@ public sealed class ApplicantRepository : IRepository<Applicant, int>
     public async Task<IEnumerable<Applicant>> GetAllEntities()
     {
         using var connection = _db.GetConnection();
-        
+
         var applicantSql = "SELECT * FROM Applicant";
         var applicants = (await connection.QueryAsync<Applicant>(applicantSql)).ToList();
 
         var applicantIds = applicants.Select(a => a.Id).ToList();
 
         var applicationsSql = "SELECT * FROM Application WHERE ApplicantId IN @Ids";
-        var allApplications = await connection.QueryAsync<Application>(applicationsSql, new { Ids = applicantIds });
+        var allApplications = await connection.QueryAsync<Application>(
+            applicationsSql,
+            new { Ids = applicantIds }
+        );
 
         var licensesSql = "SELECT * FROM License WHERE ApplicantId IN @Ids";
-        var allLicenses = await connection.QueryAsync<License>(licensesSql, new { Ids = applicantIds });
+        var allLicenses = await connection.QueryAsync<License>(
+            licensesSql,
+            new { Ids = applicantIds }
+        );
 
         foreach (var applicant in applicants)
         {
-            applicant.Applications = allApplications.Where(a => a.ApplicantId == applicant.Id).ToList();
+            applicant.Applications = allApplications
+                .Where(a => a.ApplicantId == applicant.Id)
+                .ToList();
             applicant.Licenses = allLicenses.Where(l => l.ApplicantId == applicant.Id).ToList();
         }
 
@@ -57,17 +69,30 @@ public sealed class ApplicantRepository : IRepository<Applicant, int>
     public async Task<Applicant?> AddEntity(Applicant entity)
     {
         using var connection = _db.GetConnection();
-        
+
         var sql = """
-            INSERT INTO Applicant (FirstName, LastName, DateJoined, DateOfBirth, Address, Email, PhoneNumber)
-            VALUES (@FirstName, @LastName, @DateJoined, @DateOfBirth, @Address, @Email, @PhoneNumber);
-            SELECT CAST(SCOPE_IDENTITY() AS INT);
-        """;
-        
-        var newId = await connection.QuerySingleOrDefaultAsync<int?>(sql, new { entity.FirstName, entity.LastName, entity.DateJoined, entity.DateOfBirth, entity.Address, entity.Email, entity.PhoneNumber });
-    
-        if (newId == null) return null;
-        
+                INSERT INTO Applicant (FirstName, LastName, DateJoined, DateOfBirth, Address, Email, PhoneNumber)
+                VALUES (@FirstName, @LastName, @DateJoined, @DateOfBirth, @Address, @Email, @PhoneNumber);
+                SELECT CAST(SCOPE_IDENTITY() AS INT);
+            """;
+
+        var newId = await connection.QuerySingleOrDefaultAsync<int?>(
+            sql,
+            new
+            {
+                entity.FirstName,
+                entity.LastName,
+                entity.DateJoined,
+                entity.DateOfBirth,
+                entity.Address,
+                entity.Email,
+                entity.PhoneNumber,
+            }
+        );
+
+        if (newId == null)
+            return null;
+
         entity.Id = newId.Value;
         return entity;
     }
@@ -75,29 +100,42 @@ public sealed class ApplicantRepository : IRepository<Applicant, int>
     public async Task<bool> UpdateEntity(Applicant entity)
     {
         using var connection = _db.GetConnection();
-        
+
         var sql = """
-            UPDATE Applicant
-            SET FirstName = @FirstName, LastName = @LastName, DateJoined = @DateJoined, DateOfBirth = @DateOfBirth, Address = @Address, Email = @Email, PhoneNumber = @PhoneNumber
-            WHERE Id = @Id
-        """;
-        
-        var rowsAffected = await connection.ExecuteAsync(sql, new { entity.FirstName, entity.LastName, entity.DateJoined, entity.DateOfBirth, entity.Address, entity.Email, entity.PhoneNumber, entity.Id });
-        
+                UPDATE Applicant
+                SET FirstName = @FirstName, LastName = @LastName, DateJoined = @DateJoined, DateOfBirth = @DateOfBirth, Address = @Address, Email = @Email, PhoneNumber = @PhoneNumber
+                WHERE Id = @Id
+            """;
+
+        var rowsAffected = await connection.ExecuteAsync(
+            sql,
+            new
+            {
+                entity.FirstName,
+                entity.LastName,
+                entity.DateJoined,
+                entity.DateOfBirth,
+                entity.Address,
+                entity.Email,
+                entity.PhoneNumber,
+                entity.Id,
+            }
+        );
+
         return rowsAffected == 1;
     }
 
     public async Task<bool> DeleteEntity(int id)
     {
         using var connection = _db.GetConnection();
-        
+
         var sql = """
-            DELETE FROM Applicant
-            WHERE Id = @Id
-        """;
-        
+                DELETE FROM Applicant
+                WHERE Id = @Id
+            """;
+
         var rowsAffected = await connection.ExecuteAsync(sql, new { id });
-        
+
         return rowsAffected == 1;
     }
 }

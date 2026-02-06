@@ -7,7 +7,7 @@ public class Applicant
     public required DateOnly DateOfBirth { get; init; }
     public List<Application> Applications { get; set; } = [];
     public List<License> Licenses { get; set; } = [];
-    public string? Address { get; set; }
+    public required string Address { get; set; }
     public required string Email { get; set; }
     public string? PhoneNumber { get; set; }
 }

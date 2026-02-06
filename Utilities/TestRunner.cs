@@ -61,7 +61,7 @@ public static class TestRunner
         Console.WriteLine("\n========================================");
         Console.WriteLine($"Results: {_passed} passed, {_failed} failed");
         Console.WriteLine("========================================");
-        
+
         if (_failures.Any())
         {
             Console.WriteLine("\nFailed tests:");

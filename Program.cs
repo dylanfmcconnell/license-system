@@ -2,7 +2,8 @@
 
 SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
 
-var connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=LicenseSystem;Integrated Security=true;";
+var connectionString =
+    "Server=(localdb)\\MSSQLLocalDB;Database=LicenseSystem;Integrated Security=true;";
 var db = new DatabaseConnection(connectionString);
 
 // Repositories
@@ -19,7 +20,8 @@ static async Task RunTests(
     LicenseTypeRepository licenseTypeRepo,
     ApplicantRepository applicantRepo,
     ApplicationRepository applicationRepo,
-    LicenseRepository licenseRepo)
+    LicenseRepository licenseRepo
+)
 {
     TestRunner.Reset();
 
@@ -27,7 +29,11 @@ static async Task RunTests(
     TestRunner.Describe("LicenseCategory Repository");
 
     // Add
-    var newCategory = new LicenseCategory { Name = $"Test Category {Guid.NewGuid()}", Description = "Test description" };
+    var newCategory = new LicenseCategory
+    {
+        Name = $"Test Category {Guid.NewGuid()}",
+        Description = "Test description",
+    };
     var addedCategory = await categoryRepo.AddEntity(newCategory);
     TestRunner.ExpectNotNull(addedCategory, "AddEntity returns entity");
     TestRunner.ExpectGreaterThan(addedCategory?.Id ?? 0, 0, "AddEntity sets Id");
@@ -45,7 +51,11 @@ static async Task RunTests(
     {
         var fetchedCategory = await categoryRepo.GetEntityById(addedCategory.Id);
         TestRunner.ExpectNotNull(fetchedCategory, "GetEntityById returns result");
-        TestRunner.ExpectEqual(addedCategory.Name, fetchedCategory?.Name, "GetEntityById returns correct entity");
+        TestRunner.ExpectEqual(
+            addedCategory.Name,
+            fetchedCategory?.Name,
+            "GetEntityById returns correct entity"
+        );
 
         // Update
         fetchedCategory!.Description = "Updated description";
@@ -53,7 +63,11 @@ static async Task RunTests(
         TestRunner.Expect(categoryUpdated, "UpdateEntity returns true");
 
         var updatedCategory = await categoryRepo.GetEntityById(fetchedCategory.Id);
-        TestRunner.ExpectEqual("Updated description", updatedCategory?.Description, "UpdateEntity persists changes");
+        TestRunner.ExpectEqual(
+            "Updated description",
+            updatedCategory?.Description,
+            "UpdateEntity persists changes"
+        );
 
         // Delete
         var categoryDeleted = await categoryRepo.DeleteEntity(fetchedCategory.Id);
@@ -74,7 +88,7 @@ static async Task RunTests(
         DateOfBirth = new DateOnly(1990, 5, 15),
         Address = "123 Test St",
         Email = $"test{Guid.NewGuid()}@example.com",
-        PhoneNumber = "555-1234"
+        PhoneNumber = "555-1234",
     };
     var addedApplicant = await applicantRepo.AddEntity(newApplicant);
     TestRunner.ExpectNotNull(addedApplicant, "AddEntity returns entity");
@@ -90,7 +104,11 @@ static async Task RunTests(
     {
         var fetchedApplicant = await applicantRepo.GetEntityById(addedApplicant.Id);
         TestRunner.ExpectNotNull(fetchedApplicant, "GetEntityById returns result");
-        TestRunner.ExpectEqual("John", fetchedApplicant?.FirstName, "GetEntityById returns correct entity");
+        TestRunner.ExpectEqual(
+            "John",
+            fetchedApplicant?.FirstName,
+            "GetEntityById returns correct entity"
+        );
 
         // Update
         fetchedApplicant!.FirstName = "Jane";
@@ -98,7 +116,11 @@ static async Task RunTests(
         TestRunner.Expect(applicantUpdated, "UpdateEntity returns true");
 
         var updatedApplicant = await applicantRepo.GetEntityById(fetchedApplicant.Id);
-        TestRunner.ExpectEqual("Jane", updatedApplicant?.FirstName, "UpdateEntity persists changes");
+        TestRunner.ExpectEqual(
+            "Jane",
+            updatedApplicant?.FirstName,
+            "UpdateEntity persists changes"
+        );
 
         // Delete
         var applicantDeleted = await applicantRepo.DeleteEntity(fetchedApplicant.Id);
@@ -125,7 +147,7 @@ static async Task RunTests(
             LicenseClass = typeof(License),
             ExpirationTime = 24,
             Fee = 50.00m,
-            Description = "Test license type"
+            Description = "Test license type",
         };
         var addedLicenseType = await licenseTypeRepo.AddEntity(newLicenseType);
         TestRunner.ExpectNotNull(addedLicenseType, "AddEntity returns entity");
@@ -141,8 +163,15 @@ static async Task RunTests(
         {
             var fetchedLicenseType = await licenseTypeRepo.GetEntityById(addedLicenseType.Id);
             TestRunner.ExpectNotNull(fetchedLicenseType, "GetEntityById returns result");
-            TestRunner.ExpectNotNull(fetchedLicenseType?.Category, "GetEntityById loads Category relationship");
-            TestRunner.ExpectEqual(24, fetchedLicenseType?.ExpirationTime, "GetEntityById returns correct ExpirationTime");
+            TestRunner.ExpectNotNull(
+                fetchedLicenseType?.Category,
+                "GetEntityById loads Category relationship"
+            );
+            TestRunner.ExpectEqual(
+                24,
+                fetchedLicenseType?.ExpirationTime,
+                "GetEntityById returns correct ExpirationTime"
+            );
 
             // Update
             fetchedLicenseType!.Fee = 75.00m;
@@ -150,7 +179,11 @@ static async Task RunTests(
             TestRunner.Expect(licenseTypeUpdated, "UpdateEntity returns true");
 
             var updatedLicenseType = await licenseTypeRepo.GetEntityById(fetchedLicenseType.Id);
-            TestRunner.ExpectEqual(75.00m, updatedLicenseType?.Fee, "UpdateEntity persists changes");
+            TestRunner.ExpectEqual(
+                75.00m,
+                updatedLicenseType?.Fee,
+                "UpdateEntity persists changes"
+            );
 
             // Delete
             var licenseTypeDeleted = await licenseTypeRepo.DeleteEntity(fetchedLicenseType.Id);
@@ -177,7 +210,7 @@ static async Task RunTests(
             Category = savedLicenseCategory,
             LicenseClass = typeof(License),
             ExpirationTime = 12,
-            Fee = 25.00m
+            Fee = 25.00m,
         };
         var savedLicenseType = await licenseTypeRepo.AddEntity(licenseType);
 
@@ -188,7 +221,7 @@ static async Task RunTests(
             DateJoined = DateOnly.FromDateTime(DateTime.Now),
             DateOfBirth = new DateOnly(1985, 3, 20),
             Address = "456 License Ave",
-            Email = $"license{Guid.NewGuid()}@test.com"
+            Email = $"license{Guid.NewGuid()}@test.com",
         };
         var savedLicenseApplicant = await applicantRepo.AddEntity(licenseApplicant);
 
@@ -207,17 +240,31 @@ static async Task RunTests(
                 DateOfBirth = savedLicenseApplicant.DateOfBirth,
                 IssueDate = DateOnly.FromDateTime(DateTime.Now),
                 ExpirationDate = DateOnly.FromDateTime(DateTime.Now.AddMonths(12)),
-                Status = LicenseStatus.Valid
+                Status = LicenseStatus.Valid,
             };
             var addedLicense = await licenseRepo.AddEntity(newLicense);
             TestRunner.ExpectNotNull(addedLicense, "AddEntity returns entity");
-            TestRunner.ExpectEqual(newLicense.Id, addedLicense?.Id, "AddEntity preserves provided Id");
+            TestRunner.ExpectEqual(
+                newLicense.Id,
+                addedLicense?.Id,
+                "AddEntity preserves provided Id"
+            );
 
             var fetchedLicense = await licenseRepo.GetEntityById(newLicense.Id);
             TestRunner.ExpectNotNull(fetchedLicense, "GetEntityById returns result");
-            TestRunner.ExpectNotNull(fetchedLicense?.Applicant, "GetEntityById loads Applicant relationship");
-            TestRunner.ExpectNotNull(fetchedLicense?.LicenseType, "GetEntityById loads LicenseType relationship");
-            TestRunner.ExpectEqual(LicenseStatus.Valid, fetchedLicense?.Status, "GetEntityById returns correct Status");
+            TestRunner.ExpectNotNull(
+                fetchedLicense?.Applicant,
+                "GetEntityById loads Applicant relationship"
+            );
+            TestRunner.ExpectNotNull(
+                fetchedLicense?.LicenseType,
+                "GetEntityById loads LicenseType relationship"
+            );
+            TestRunner.ExpectEqual(
+                LicenseStatus.Valid,
+                fetchedLicense?.Status,
+                "GetEntityById returns correct Status"
+            );
 
             // Update
             fetchedLicense!.Status = LicenseStatus.Suspended;
@@ -225,7 +272,11 @@ static async Task RunTests(
             TestRunner.Expect(licenseUpdated, "UpdateEntity returns true");
 
             var updatedLicense = await licenseRepo.GetEntityById(fetchedLicense.Id);
-            TestRunner.ExpectEqual(LicenseStatus.Suspended, updatedLicense?.Status, "UpdateEntity persists changes");
+            TestRunner.ExpectEqual(
+                LicenseStatus.Suspended,
+                updatedLicense?.Status,
+                "UpdateEntity persists changes"
+            );
 
             // GetAll
             var allLicenses = (await licenseRepo.GetAllEntities()).ToList();
@@ -258,7 +309,7 @@ static async Task RunTests(
             CategoryId = savedAppCategory.Id,
             Category = savedAppCategory,
             LicenseClass = typeof(License),
-            Fee = 30.00m
+            Fee = 30.00m,
         };
         var savedAppLicenseType = await licenseTypeRepo.AddEntity(appLicenseType);
 
@@ -269,7 +320,7 @@ static async Task RunTests(
             DateJoined = DateOnly.FromDateTime(DateTime.Now),
             DateOfBirth = new DateOnly(1992, 7, 10),
             Address = "789 App Blvd",
-            Email = $"app{Guid.NewGuid()}@test.com"
+            Email = $"app{Guid.NewGuid()}@test.com",
         };
         var savedAppApplicant = await applicantRepo.AddEntity(appApplicant);
 
@@ -284,25 +335,41 @@ static async Task RunTests(
                 SubmissionDate = DateOnly.FromDateTime(DateTime.Now),
                 DeliveryAddress = "789 App Blvd",
                 ApprovedStatus = ApplicationStatus.UnderReview,
-                Fee = 30.00m
+                Fee = 30.00m,
             };
             var addedApplication = await applicationRepo.AddEntity(newApplication);
             TestRunner.ExpectNotNull(addedApplication, "AddEntity returns entity");
             TestRunner.ExpectGreaterThan(addedApplication?.Id ?? 0, 0, "AddEntity sets Id");
 
             var allApplications = (await applicationRepo.GetAllEntities()).ToList();
-            TestRunner.ExpectGreaterThan(allApplications.Count, 0, "GetAllEntities returns results");
+            TestRunner.ExpectGreaterThan(
+                allApplications.Count,
+                0,
+                "GetAllEntities returns results"
+            );
 
-            var foundApplication = allApplications.FirstOrDefault(a => a.ApplicantId == savedAppApplicant.Id);
+            var foundApplication = allApplications.FirstOrDefault(a =>
+                a.ApplicantId == savedAppApplicant.Id
+            );
             TestRunner.ExpectNotNull(foundApplication, "Added application exists in GetAll");
 
             if (addedApplication != null)
             {
                 var fetchedApplication = await applicationRepo.GetEntityById(addedApplication.Id);
                 TestRunner.ExpectNotNull(fetchedApplication, "GetEntityById returns result");
-                TestRunner.ExpectNotNull(fetchedApplication?.Applicant, "GetEntityById loads Applicant relationship");
-                TestRunner.ExpectNotNull(fetchedApplication?.LicenseType, "GetEntityById loads LicenseType relationship");
-                TestRunner.ExpectEqual(ApplicationStatus.UnderReview, fetchedApplication?.ApprovedStatus, "GetEntityById returns correct status");
+                TestRunner.ExpectNotNull(
+                    fetchedApplication?.Applicant,
+                    "GetEntityById loads Applicant relationship"
+                );
+                TestRunner.ExpectNotNull(
+                    fetchedApplication?.LicenseType,
+                    "GetEntityById loads LicenseType relationship"
+                );
+                TestRunner.ExpectEqual(
+                    ApplicationStatus.UnderReview,
+                    fetchedApplication?.ApprovedStatus,
+                    "GetEntityById returns correct status"
+                );
 
                 // Update
                 fetchedApplication!.ApprovedStatus = ApplicationStatus.Approved;
@@ -311,7 +378,11 @@ static async Task RunTests(
                 TestRunner.Expect(applicationUpdated, "UpdateEntity returns true");
 
                 var updatedApplication = await applicationRepo.GetEntityById(fetchedApplication.Id);
-                TestRunner.ExpectEqual(ApplicationStatus.Approved, updatedApplication?.ApprovedStatus, "UpdateEntity persists status change");
+                TestRunner.ExpectEqual(
+                    ApplicationStatus.Approved,
+                    updatedApplication?.ApprovedStatus,
+                    "UpdateEntity persists status change"
+                );
 
                 // Delete
                 var applicationDeleted = await applicationRepo.DeleteEntity(fetchedApplication.Id);

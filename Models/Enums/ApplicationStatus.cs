@@ -2,5 +2,5 @@ public enum ApplicationStatus
 {
     UnderReview,
     Approved,
-    Denied
+    Denied,
 }
