@@ -1,5 +1,8 @@
 ﻿using Dapper;
 
+// Note: The creation of these tests is AI assisted. 
+// All other code in the project is fully written by me.
+
 SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
 
 var connectionString =
