@@ -1,14 +1,22 @@
 using Dapper;
 
+/// <summary>
+/// Repository implementation for managing <see cref="LicenseType"/> entities in the database.
+/// </summary>
 public sealed class LicenseTypeRepository : IRepository<LicenseType, int>
 {
     private readonly DatabaseConnection _db;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LicenseTypeRepository"/> class.
+    /// </summary>
+    /// <param name="db">The database connection provider.</param>
     public LicenseTypeRepository(DatabaseConnection db)
     {
         _db = db;
     }
 
+    /// <inheritdoc />
     public async Task<LicenseType?> GetEntityById(int id)
     {
         using var connection = _db.GetConnection();
@@ -31,6 +39,7 @@ public sealed class LicenseTypeRepository : IRepository<LicenseType, int>
         return licenseType;
     }
 
+    /// <inheritdoc />
     public async Task<IEnumerable<LicenseType>> GetAllEntities()
     {
         using var connection = _db.GetConnection();
@@ -58,6 +67,7 @@ public sealed class LicenseTypeRepository : IRepository<LicenseType, int>
         return licenseTypes;
     }
 
+    /// <inheritdoc />
     public async Task<LicenseType?> AddEntity(LicenseType entity)
     {
         using var connection = _db.GetConnection();
@@ -88,6 +98,7 @@ public sealed class LicenseTypeRepository : IRepository<LicenseType, int>
         return entity;
     }
 
+    /// <inheritdoc />
     public async Task<bool> UpdateEntity(LicenseType entity)
     {
         using var connection = _db.GetConnection();
@@ -116,6 +127,7 @@ public sealed class LicenseTypeRepository : IRepository<LicenseType, int>
         return rowsAffected == 1;
     }
 
+    /// <inheritdoc />
     public async Task<bool> DeleteEntity(int id)
     {
         using var connection = _db.GetConnection();

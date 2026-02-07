@@ -1,15 +1,24 @@
 using Dapper;
 using Microsoft.Data.SqlClient;
 
+/// <summary>
+/// Repository implementation for managing <see cref="LicenseCategory"/> entities in the database.
+/// Uses manual SQL access (no Dapper) for read operations as a learning exercise.
+/// </summary>
 public sealed class LicenseCategoryRepository : IRepository<LicenseCategory, int>
 {
     private readonly DatabaseConnection _db;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LicenseCategoryRepository"/> class.
+    /// </summary>
+    /// <param name="db">The database connection provider.</param>
     public LicenseCategoryRepository(DatabaseConnection db)
     {
         _db = db;
     }
 
+    /// <inheritdoc />
     public async Task<LicenseCategory?> GetEntityById(int id)
     {
         // Manual SQL access no Dapper for practice
@@ -68,6 +77,7 @@ public sealed class LicenseCategoryRepository : IRepository<LicenseCategory, int
         return category;
     }
 
+    /// <inheritdoc />
     public async Task<IEnumerable<LicenseCategory>> GetAllEntities()
     {
         // Manual SQL access no Dapper for practice
@@ -126,6 +136,7 @@ public sealed class LicenseCategoryRepository : IRepository<LicenseCategory, int
         return categoriesDict.Values;
     }
 
+    /// <inheritdoc />
     public async Task<LicenseCategory?> AddEntity(LicenseCategory entity)
     {
         using var connection = _db.GetConnection();
@@ -148,6 +159,7 @@ public sealed class LicenseCategoryRepository : IRepository<LicenseCategory, int
         return entity;
     }
 
+    /// <inheritdoc />
     public async Task<bool> UpdateEntity(LicenseCategory entity)
     {
         using var connection = _db.GetConnection();
@@ -171,6 +183,7 @@ public sealed class LicenseCategoryRepository : IRepository<LicenseCategory, int
         return rowsAffected == 1;
     }
 
+    /// <inheritdoc />
     public async Task<bool> DeleteEntity(int id)
     {
         using var connection = _db.GetConnection();

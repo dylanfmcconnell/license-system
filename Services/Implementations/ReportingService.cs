@@ -1,3 +1,6 @@
+/// <summary>
+/// Service implementation that generates reports on applications, revenue, and license data.
+/// </summary>
 public sealed class ReportingService : IReportingService
 {
     private readonly IRepository<Application, int> _applicationRepository;
@@ -6,6 +9,14 @@ public sealed class ReportingService : IReportingService
     private readonly IRepository<LicenseCategory, int> _licenseCategoryRepository;
     private readonly IRepository<Applicant, int> _applicantRepository;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ReportingService"/> class.
+    /// </summary>
+    /// <param name="applicationRepository">The application repository.</param>
+    /// <param name="licenseRepository">The license repository.</param>
+    /// <param name="licenseTypeRepository">The license type repository.</param>
+    /// <param name="licenseCategoryRepository">The license category repository.</param>
+    /// <param name="applicantRepository">The applicant repository.</param>
     public ReportingService(
         IRepository<Application, int> applicationRepository,
         IRepository<License, string> licenseRepository,
@@ -21,6 +32,7 @@ public sealed class ReportingService : IReportingService
         _applicantRepository = applicantRepository;
     }
 
+    /// <inheritdoc />
     public async Task<Dictionary<ApplicationStatus, int>> GetApplicationCountsByStatus()
     {
         var applications = await _applicationRepository.GetAllEntities();
@@ -28,6 +40,7 @@ public sealed class ReportingService : IReportingService
         return applications.GroupBy(a => a.ApprovedStatus).ToDictionary(g => g.Key, g => g.Count());
     }
 
+    /// <inheritdoc />
     public async Task<Dictionary<string, int>> GetLicenseCountsByCategory()
     {
         var licenses = await _licenseRepository.GetAllEntities();
@@ -48,12 +61,14 @@ public sealed class ReportingService : IReportingService
             .ToDictionary(g => g.Key, g => g.Count());
     }
 
+    /// <inheritdoc />
     public async Task<List<License>> GetLicensesExpiringSoon(int days)
     {
         var licenses = await _licenseRepository.GetAllEntities();
         return [.. licenses.Where(l => l.IsExpiringSoon(days))];
     }
 
+    /// <inheritdoc />
     public async Task<Dictionary<string, decimal>> GetRevenueByLicenseType()
     {
         var applications = await _applicationRepository.GetAllEntities();
@@ -64,6 +79,7 @@ public sealed class ReportingService : IReportingService
             .ToDictionary(g => g.Key, g => g.Sum(a => a.Fee ?? 0m));
     }
 
+    /// <inheritdoc />
     public async Task<List<Applicant>> GetTopApplicantsByLicenseCount(int count)
     {
         var applicants = await _applicantRepository.GetAllEntities();

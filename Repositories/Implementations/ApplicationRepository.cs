@@ -1,14 +1,22 @@
 using Dapper;
 
+/// <summary>
+/// Repository implementation for managing <see cref="Application"/> entities in the database.
+/// </summary>
 public sealed class ApplicationRepository : IRepository<Application, int>
 {
     private readonly DatabaseConnection _db;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApplicationRepository"/> class.
+    /// </summary>
+    /// <param name="db">The database connection provider.</param>
     public ApplicationRepository(DatabaseConnection db)
     {
         _db = db;
     }
 
+    /// <inheritdoc />
     public async Task<Application?> GetEntityById(int id)
     {
         using var connection = _db.GetConnection();
@@ -43,6 +51,7 @@ public sealed class ApplicationRepository : IRepository<Application, int>
         return application;
     }
 
+    /// <inheritdoc />
     public async Task<IEnumerable<Application>> GetAllEntities()
     {
         using var connection = _db.GetConnection();
@@ -94,6 +103,7 @@ public sealed class ApplicationRepository : IRepository<Application, int>
         return applications;
     }
 
+    /// <inheritdoc />
     public async Task<Application?> AddEntity(Application entity)
     {
         using var connection = _db.GetConnection();
@@ -126,6 +136,7 @@ public sealed class ApplicationRepository : IRepository<Application, int>
         return entity;
     }
 
+    /// <inheritdoc />
     public async Task<bool> UpdateEntity(Application entity)
     {
         using var connection = _db.GetConnection();
@@ -156,6 +167,7 @@ public sealed class ApplicationRepository : IRepository<Application, int>
         return rowsAffected == 1;
     }
 
+    /// <inheritdoc />
     public async Task<bool> DeleteEntity(int id)
     {
         using var connection = _db.GetConnection();

@@ -1,7 +1,14 @@
+/// <summary>
+/// Generates unique license identifiers in the format of two uppercase letters followed by seven digits.
+/// </summary>
 public static class LicenseIdGenerator
 {
     private static readonly Random _random = new();
 
+    /// <summary>
+    /// Generates a new unique license identifier (e.g., "AB1234567").
+    /// </summary>
+    /// <returns>A string containing two random uppercase letters followed by seven random digits.</returns>
     public static string GenerateId()
     {
         var letters = new char[2];

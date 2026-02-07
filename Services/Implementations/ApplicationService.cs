@@ -1,3 +1,7 @@
+/// <summary>
+/// Service implementation that manages the license application lifecycle,
+/// including submission, approval, denial, and querying.
+/// </summary>
 public sealed class ApplicationService : IApplicationService
 {
     private readonly IRepository<Application, int> _applicationRepository;
@@ -5,6 +9,13 @@ public sealed class ApplicationService : IApplicationService
     private readonly IRepository<LicenseType, int> _licenseTypeRepository;
     private readonly IRepository<License, string> _licenseRepository;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApplicationService"/> class.
+    /// </summary>
+    /// <param name="applicationRepository">The application repository.</param>
+    /// <param name="licenseTypeRepository">The license type repository.</param>
+    /// <param name="applicantRepository">The applicant repository.</param>
+    /// <param name="licenseRepository">The license repository.</param>
     public ApplicationService(
         IRepository<Application, int> applicationRepository,
         IRepository<LicenseType, int> licenseTypeRepository,
@@ -18,6 +29,7 @@ public sealed class ApplicationService : IApplicationService
         _licenseRepository = licenseRepository;
     }
 
+    /// <inheritdoc />
     public async Task<Application?> SubmitApplication(ApplicationSubmitRequest applicationRequest)
     {
         if (string.IsNullOrWhiteSpace(applicationRequest.DeliveryAddress))
@@ -47,6 +59,7 @@ public sealed class ApplicationService : IApplicationService
         return await _applicationRepository.AddEntity(application);
     }
 
+    /// <inheritdoc />
     public async Task<License?> ApproveApplication(int applicationId)
     {
         // Get and validate application
@@ -110,6 +123,7 @@ public sealed class ApplicationService : IApplicationService
         return license;
     }
 
+    /// <inheritdoc />
     public async Task<bool> DenyApplication(int applicationId)
     {
         var application = await _applicationRepository.GetEntityById(applicationId);
@@ -124,29 +138,34 @@ public sealed class ApplicationService : IApplicationService
         return await _applicationRepository.UpdateEntity(application);
     }
 
+    /// <inheritdoc />
     public async Task<Application?> GetApplication(int applicationId)
     {
         return await _applicationRepository.GetEntityById(applicationId);
     }
 
+    /// <inheritdoc />
     public async Task<List<Application>> GetApplicationsByApplicant(int applicantId)
     {
         var allApplications = await _applicationRepository.GetAllEntities();
         return [.. allApplications.Where(a => a.ApplicantId == applicantId)];
     }
 
+    /// <inheritdoc />
     public async Task<List<Application>> GetApplicationsByLicenseType(int licenseTypeId)
     {
         var allApplications = await _applicationRepository.GetAllEntities();
         return [.. allApplications.Where(a => a.LicenseTypeId == licenseTypeId)];
     }
 
+    /// <inheritdoc />
     public async Task<List<Application>> GetApplicationsByStatus(ApplicationStatus status)
     {
         var allApplications = await _applicationRepository.GetAllEntities();
         return [.. allApplications.Where(a => a.ApprovedStatus == status)];
     }
 
+    /// <inheritdoc />
     public async Task<bool> UpdateDeliveryAddress(int applicationId, string newAddress)
     {
         if (string.IsNullOrWhiteSpace(newAddress))

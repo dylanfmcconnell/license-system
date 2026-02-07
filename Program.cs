@@ -15,6 +15,9 @@ var licenseRepo = new LicenseRepository(db);
 
 await RunTests(categoryRepo, licenseTypeRepo, applicantRepo, applicationRepo, licenseRepo);
 
+/// <summary>
+/// Runs the full integration test suite against all repository implementations.
+/// </summary>
 static async Task RunTests(
     LicenseCategoryRepository categoryRepo,
     LicenseTypeRepository licenseTypeRepo,

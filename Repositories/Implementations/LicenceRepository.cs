@@ -1,14 +1,22 @@
 using Dapper;
 
+/// <summary>
+/// Repository implementation for managing <see cref="License"/> entities in the database.
+/// </summary>
 public sealed class LicenseRepository : IRepository<License, string>
 {
     private readonly DatabaseConnection _db;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LicenseRepository"/> class.
+    /// </summary>
+    /// <param name="db">The database connection provider.</param>
     public LicenseRepository(DatabaseConnection db)
     {
         _db = db;
     }
 
+    /// <inheritdoc />
     public async Task<License?> GetEntityById(string id)
     {
         using var connection = _db.GetConnection();
@@ -34,6 +42,7 @@ public sealed class LicenseRepository : IRepository<License, string>
         return license;
     }
 
+    /// <inheritdoc />
     public async Task<IEnumerable<License>> GetAllEntities()
     {
         using var connection = _db.GetConnection();
@@ -65,6 +74,7 @@ public sealed class LicenseRepository : IRepository<License, string>
         return licenses;
     }
 
+    /// <inheritdoc />
     public async Task<License?> AddEntity(License entity)
     {
         using var connection = _db.GetConnection();
@@ -94,6 +104,7 @@ public sealed class LicenseRepository : IRepository<License, string>
         return rowsAffected > 0 ? entity : null;
     }
 
+    /// <inheritdoc />
     public async Task<bool> UpdateEntity(License entity)
     {
         using var connection = _db.GetConnection();
@@ -125,6 +136,7 @@ public sealed class LicenseRepository : IRepository<License, string>
         return rowsAffected == 1;
     }
 
+    /// <inheritdoc />
     public async Task<bool> DeleteEntity(string id)
     {
         using var connection = _db.GetConnection();

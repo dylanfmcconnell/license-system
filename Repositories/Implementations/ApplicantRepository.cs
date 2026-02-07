@@ -1,14 +1,22 @@
 using Dapper;
 
+/// <summary>
+/// Repository implementation for managing <see cref="Applicant"/> entities in the database.
+/// </summary>
 public sealed class ApplicantRepository : IRepository<Applicant, int>
 {
     private readonly DatabaseConnection _db;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApplicantRepository"/> class.
+    /// </summary>
+    /// <param name="db">The database connection provider.</param>
     public ApplicantRepository(DatabaseConnection db)
     {
         _db = db;
     }
 
+    /// <inheritdoc />
     public async Task<Applicant?> GetEntityById(int id)
     {
         using var connection = _db.GetConnection();
@@ -34,6 +42,7 @@ public sealed class ApplicantRepository : IRepository<Applicant, int>
         return applicant;
     }
 
+    /// <inheritdoc />
     public async Task<IEnumerable<Applicant>> GetAllEntities()
     {
         using var connection = _db.GetConnection();
@@ -66,6 +75,7 @@ public sealed class ApplicantRepository : IRepository<Applicant, int>
         return applicants;
     }
 
+    /// <inheritdoc />
     public async Task<Applicant?> AddEntity(Applicant entity)
     {
         using var connection = _db.GetConnection();
@@ -97,6 +107,7 @@ public sealed class ApplicantRepository : IRepository<Applicant, int>
         return entity;
     }
 
+    /// <inheritdoc />
     public async Task<bool> UpdateEntity(Applicant entity)
     {
         using var connection = _db.GetConnection();
@@ -125,6 +136,7 @@ public sealed class ApplicantRepository : IRepository<Applicant, int>
         return rowsAffected == 1;
     }
 
+    /// <inheritdoc />
     public async Task<bool> DeleteEntity(int id)
     {
         using var connection = _db.GetConnection();
