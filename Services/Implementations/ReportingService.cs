@@ -51,18 +51,7 @@ public sealed class ReportingService : IReportingService
     public async Task<List<License>> GetLicensesExpiringSoon(int days)
     {
         var licenses = await _licenseRepository.GetAllEntities();
-        var today = DateOnly.FromDateTime(DateTime.Now);
-        var cutoff = today.AddDays(days);
-
-        return
-        [
-            .. licenses.Where(l =>
-                l.Status == LicenseStatus.Valid
-                && l.ExpirationDate != null
-                && l.ExpirationDate >= today
-                && l.ExpirationDate <= cutoff
-            ),
-        ];
+        return [.. licenses.Where(l => l.IsExpiringSoon(days))];
     }
 
     public async Task<Dictionary<string, decimal>> GetRevenueByLicenseType()
